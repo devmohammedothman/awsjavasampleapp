@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -26,7 +28,7 @@ public class S3AppExample {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Region region = Region.US_EAST_1;
-		
+
 		S3Client s3 = S3Client.builder().region(region).build();
 
 		String bucket = "bucket" + System.currentTimeMillis();
@@ -42,22 +44,23 @@ public class S3AppExample {
 		System.out.println("Upload complete");
 		System.out.printf("%n");
 
-//		String deleteBucket = "bucket1606930143480";
-//		cleanUp(s3, bucket, key);
-//
-//		System.out.println("Closing the connection to Amazon S3");
-//		s3.close();
-//		System.out.println("Connection closed");
-//		System.out.println("Exiting...");
+		// List Existing Buckets after adding new one
+		System.out.println("List All Buckets");
+		listBuckets(s3);
+		
+		System.out.println("Delete Created Bucket");
+		cleanUp(s3, bucket, key);
+
+		System.out.println("Closing the connection to Amazon S3");
+		s3.close();
+		System.out.println("Connection closed");
+		System.out.println("Exiting...");
 	}
 
 	public static void tutorialSetup(S3Client s3Client, String bucketName, Region region) {
 		try {
-			s3Client.createBucket(
-					CreateBucketRequest.builder().bucket(bucketName)
-							.createBucketConfiguration(
-									CreateBucketConfiguration.builder().build())
-							.build());	
+			s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName)
+					.createBucketConfiguration(CreateBucketConfiguration.builder().build()).build());
 			System.out.println("Creating bucket: " + bucketName);
 			s3Client.waiter().waitUntilBucketExists(HeadBucketRequest.builder().bucket(bucketName).build());
 			System.out.println(bucketName + " is ready.");
@@ -89,4 +92,9 @@ public class S3AppExample {
 		System.out.printf("%n");
 	}
 
+	public static void listBuckets(S3Client s3Client) {
+		ListBucketsRequest listBucketsRequest = ListBucketsRequest.builder().build();
+		ListBucketsResponse listBucketsResponse = s3Client.listBuckets(listBucketsRequest);
+		listBucketsResponse.buckets().stream().forEach(x -> System.out.println(x.name()));
+	}
 }
